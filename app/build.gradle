@@ -1,0 +1,72 @@
+apply plugin: 'com.android.application'
+
+android {
+    compileSdkVersion 25
+    buildToolsVersion "25.0.3"
+    defaultConfig {
+        applicationId "com.melardev.tutsnetlibrary"
+        minSdkVersion 9
+        targetSdkVersion 25
+        versionCode 1
+        versionName "1.0"
+        testInstrumentationRunner "android.support.test.runner.AndroidJUnitRunner"
+
+        resValue("string", "key", project.key)
+        resValue("string", "client_id", project.client_id)
+    }
+    buildTypes {
+        release {
+            minifyEnabled false
+            proguardFiles getDefaultProguardFile('proguard-android.txt'), 'proguard-rules.pro'
+        }
+    }
+    compileOptions {
+        targetCompatibility JavaVersion.VERSION_1_8
+        sourceCompatibility JavaVersion.VERSION_1_8
+    }
+    //android.defaultConfig.javaCompileOptions.annotationProcessorOptions.includeCompileClasspath = true
+    packagingOptions {
+        exclude 'META-INF/rxjava.properties'
+    }
+}
+
+dependencies {
+    compile fileTree(include: ['*.jar'], dir: 'libs')
+    androidTestCompile('com.android.support.test.espresso:espresso-core:2.2.2', {
+        exclude group: 'com.android.support', module: 'support-annotations'
+    })
+    compile 'com.android.support:appcompat-v7:25.3.1'
+    compile 'com.android.support:design:25.3.1'
+    compile 'com.android.support.constraint:constraint-layout:1.0.2'
+    //Retrofit 2
+    compile 'com.squareup.retrofit2:retrofit:2.3.0'
+    //Retrofit2 Converters
+    compile 'com.squareup.retrofit2:converter-gson:2.3.0'
+    compile 'com.squareup.retrofit2:converter-scalars:2.3.0'
+    //compile 'com.squareup.retrofit2:converter-simplexml:2.3.0'
+    compile('com.squareup.retrofit2:converter-simplexml:2.3.0') {
+        exclude group: 'xpp3', module: 'xpp3'
+        exclude group: 'stax', module: 'stax-api'
+        exclude group: 'stax', module: 'stax'
+    }
+    //Logger for OkHttp3
+    compile 'com.squareup.okhttp3:logging-interceptor:3.8.1'
+    //Stetho for inspecting packets using chrome dev tools + OkHttp3 as Http stack for stetho
+    compile 'com.facebook.stetho:stetho:1.5.0'
+    compile 'com.facebook.stetho:stetho-okhttp3:1.5.0'
+    //Retrofit 2 for RxJava 2 + RxJava 2
+    compile 'io.reactivex.rxjava2:rxjava:2.1.0'
+    compile 'io.reactivex.rxjava2:rxandroid:2.0.1'
+    compile 'com.squareup.retrofit2:adapter-rxjava2:2.3.0'
+    //Retrofit 2 for RxJava 1 + RxJava 1
+    compile 'io.reactivex:rxjava:1.1.9'
+    compile 'io.reactivex:rxandroid:1.2.1'
+    compile 'com.squareup.retrofit2:adapter-rxjava:2.1.0'
+    //Android Annotations
+    annotationProcessor "org.androidannotations:androidannotations:4.3.1"
+    compile 'org.androidannotations:androidannotations-api:4.3.1'
+    //Picasso for retrofit Oauth2 Demo
+    compile 'com.squareup.picasso:picasso:2.5.2'
+    testCompile 'junit:junit:4.12'
+    compile 'org.apache.commons:commons-lang3:3.5'
+}
