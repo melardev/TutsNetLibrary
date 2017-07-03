@@ -2,35 +2,33 @@ package com.melardev.tutsnetlibrary;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.support.v4.util.LruCache;
+import android.os.Bundle;
+import android.os.Looper;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.util.Log;
-
+import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.melardev.tutsnetlibrary.apis.HttpBinApi;
 import com.melardev.tutsnetlibrary.apis.ReqResApi;
-import com.melardev.tutsnetlibrary.model.UserReqResResponse;
+import com.melardev.tutsnetlibrary.model.pojo.ReqResUsers;
 
 import java.io.IOException;
 import java.io.InputStream;
 import java.net.URL;
-import java.util.List;
+import java.util.Random;
 import java.util.concurrent.Callable;
 
 import io.reactivex.Emitter;
 import io.reactivex.Observable;
-import io.reactivex.ObservableSource;
 import io.reactivex.android.schedulers.AndroidSchedulers;
-import io.reactivex.annotations.NonNull;
 import io.reactivex.disposables.CompositeDisposable;
+import io.reactivex.disposables.Disposable;
 import io.reactivex.functions.BiConsumer;
 import io.reactivex.observers.DefaultObserver;
-import io.reactivex.observers.DisposableObserver;
 import io.reactivex.schedulers.Schedulers;
 import okhttp3.ResponseBody;
 import retrofit2.Retrofit;
@@ -43,11 +41,15 @@ import rx.Subscription;
 
 public class ActivityRxJava extends AppCompatActivity {
 
+    private static final String REQRES_BASE_URL = "https://reqres.in";
+    private static final String URL_IMG = "https://httpbin.org/image/png";
     CompositeDisposable disposables = new CompositeDisposable();
     private String TAG = getClass().getName();
     private AlertDialog dlg;
     private TextView txtRxResult;
     private rx.Subscription subscriptionRx1;
+
+    Random random = new Random();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -57,41 +59,42 @@ public class ActivityRxJava extends AppCompatActivity {
         //this.subscription = observable.subscribe(this);//rx1
     }
 
+    public void retrofit2RxJava2(View view) {
 
-    public void runSh() {
-        //RxAndroid 2
-        Observable<String> obsSearchEngine = Observable.defer(
-                new Callable<ObservableSource<? extends String>>() {
+        RxJava2CallAdapterFactory rxAdapter = RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io());
+        Retrofit retrofit = new Retrofit.Builder()
+                .baseUrl(REQRES_BASE_URL)
+                .addConverterFactory(GsonConverterFactory.create())
+                .addCallAdapterFactory(rxAdapter)
+                .build();
+
+        ReqResApi service = retrofit.create(ReqResApi.class);
+        Observable<ReqResUsers> observable = service.getUsersInPageRx_2(String.valueOf(2));
+
+        observable.observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.io())
+                .subscribe(new DefaultObserver<ReqResUsers>() {
                     @Override
-                    public ObservableSource<? extends String> call() throws Exception {
-                        return Observable.just("Google", "Bing", "Yahoo", "DuckDuckGo", "Ask", "Yandex", "IxQuick", "Dogpile");
+                    public void onNext(ReqResUsers userReqRes) {
+                        txtRxResult.setText(random.nextInt(100000) + "\n");
+                        for (ReqResUsers.User user : userReqRes.getUser()) {
+                            txtRxResult.append("id: " + user.getId() + "\tFirst and Last Name: " + user.getFirstName() + " " + user.getLastName() + "\n");
+                        }
                     }
-                }
-        );
-
-        DisposableObserver<String> observable = obsSearchEngine
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribeWith(new DisposableObserver<String>() {
-                    @Override
-                    public void onNext(@NonNull String s) {
-                        Log.d(TAG, "onComplete() -> " + s);
-                    }
 
                     @Override
-                    public void onError(@NonNull Throwable e) {
-                        Log.e(TAG, "onError()", e);
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                        Toast.makeText(ActivityRxJava.this, "retrofit2RxJava2::onError " + e.toString(), Toast.LENGTH_SHORT).show();
                     }
 
                     @Override
                     public void onComplete() {
-                        Log.d(TAG, "onNext()");
+                        Toast.makeText(ActivityRxJava.this, "retrofit2RxJava2::onComplete()", Toast.LENGTH_SHORT).show();
                     }
                 });
-        disposables.add(observable);
     }
 
-    public void retrofit() {
+    public void retrofit2RxJava1(View view) {
         /*
         Note also that subscribing an observer to the observable is what triggers the network request. For more information about how to attach multiple observers before dispatching the network requests, see this section.
          */
@@ -102,19 +105,62 @@ public class ActivityRxJava extends AppCompatActivity {
         RxJavaCallAdapterFactory rxAdapter = RxJavaCallAdapterFactory.createWithScheduler(rx.schedulers.Schedulers.io());
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.github.com")
+                .baseUrl(REQRES_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(rxAdapter)
                 .build();
 
         ReqResApi service = retrofit.create(ReqResApi.class);
-        rx.Observable<List<UserReqResResponse>> observable = service.getUsersInPageRx_1(String.valueOf(2));
+        rx.Observable<ReqResUsers> observable = service.getUsersInPageRx_1(String.valueOf(2));
 
         observable.observeOn(rx.android.schedulers.AndroidSchedulers.mainThread()).subscribeOn(rx.schedulers.Schedulers.io())
-                .subscribe(new rx.Subscriber<List<UserReqResResponse>>() {
+                .subscribe(new rx.Subscriber<ReqResUsers>() {
                     @Override
                     public void onCompleted() {
+                        Toast.makeText(ActivityRxJava.this, "retrofit2RxJava1::onComplete()", Toast.LENGTH_SHORT).show();
+                    }
 
+                    @Override
+                    public void onError(Throwable e) {
+                        e.printStackTrace();
+                        Toast.makeText(ActivityRxJava.this, "retrofit2RxJava1::onError " + e.toString(), Toast.LENGTH_SHORT).show();
+                    }
+
+                    @Override
+                    public void onNext(ReqResUsers userReqRes) {
+                        txtRxResult.setText(random.nextInt(100000) + "\n");
+                        for (ReqResUsers.User user : userReqRes.getUser()) {
+                            txtRxResult.append("id: " + user.getId() + "\tFirst and Last Name: " + user.getFirstName() + " " + user.getLastName() + "\n");
+                        }
+                    }
+                });
+    }
+
+    public void asyncTaskAsRxJava1(View view) {
+        rx.Observable<Bitmap> observableBmp = rx.Observable.create(new rx.Observable.OnSubscribe<Bitmap>() {
+            @Override
+            public void call(Subscriber<? super Bitmap> subscriber) {
+                Bitmap mIcon11 = null;
+                try {
+                    InputStream in = new URL(URL_IMG).openStream();
+                    mIcon11 = BitmapFactory.decodeStream(in);
+                } catch (Exception e) {
+                    Log.e("Error", e.getMessage());
+                    e.printStackTrace();
+                }
+                subscriber.onNext(mIcon11);
+                subscriber.onCompleted();
+            }
+        });
+
+        Subscription mySubscription = observableBmp
+                .subscribeOn(rx.schedulers.Schedulers.io()) //perform the work in the bacgrkound
+                .observeOn(rx.android.schedulers.AndroidSchedulers.mainThread()) //wait for results in main thread(onNext, onCompleted onError
+                //.subscribe(this::showImage, throwable -> Log.w(TAG, "onError", throwable), () -> Log.d(TAG, "asyncTaskAsRxJava1::onCompleted()"))
+                .subscribe(new Subscriber<Bitmap>() {
+                    @Override
+                    public void onCompleted() {
+                        Log.d("", "onCompleted");
                     }
 
                     @Override
@@ -123,16 +169,75 @@ public class ActivityRxJava extends AppCompatActivity {
                     }
 
                     @Override
-                    public void onNext(List<UserReqResResponse> userReqRes) {
-
+                    public void onNext(Bitmap bitmap) {
+                        showImage(bitmap);
                     }
                 });
     }
 
+    public void asyncTaskAsRxJava2(View view) {
+        Observable<Bitmap> observable = Observable.generate(new Callable<Bitmap>() {
+            @Override
+            public Bitmap call() throws Exception {
+                if (Looper.getMainLooper() == Looper.myLooper())
+                    Log.d(TAG, "main Thread");
+                else
+                    Log.d(TAG, Thread.currentThread().getName());
+
+                Bitmap mIcon11 = null;
+                try {
+                    InputStream in = new URL(URL_IMG).openStream();
+                    mIcon11 = BitmapFactory.decodeStream(in);
+                } catch (Exception e) {
+                    Log.e("Error", e.getMessage());
+                    e.printStackTrace();
+                }
+                return mIcon11;
+            }
+        }, new BiConsumer<Bitmap, Emitter<Bitmap>>() {
+            @Override
+            public void accept(Bitmap bitmap, Emitter<Bitmap> emitter) throws Exception {
+                if (Looper.getMainLooper() == Looper.myLooper())
+                    Log.d(TAG, "main Thread");
+                else
+                    Log.d(TAG, Thread.currentThread().getName());
+                showImage(bitmap);
+                emitter.onComplete();
+            }
+        });
+
+        observable.subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::showImage, throwable -> Log.d(TAG, "failed", throwable));
+
+        if (true)
+            return;
+
+        Disposable disposable = Observable.fromCallable(//() -> {code})
+                new Callable<Bitmap>() {
+                    @Override
+                    public Bitmap call() throws Exception {
+
+                        Bitmap mIcon11 = null;
+                        try {
+                            InputStream in = new URL(URL_IMG).openStream();
+                            mIcon11 = BitmapFactory.decodeStream(in);
+                        } catch (Exception e) {
+                            Log.e("Error", e.getMessage());
+                            e.printStackTrace();
+                        }
+                        return mIcon11;
+                    }
+                }).subscribeOn(Schedulers.io())
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(this::showImage, throwable -> Log.d(TAG, "Error retrieving the image ", throwable), () -> Log.d(TAG, "asyncTaskAsRxJava2::onComplete()"));
+    }
+
+
     public void retrofit2RxJava1() {
 
         Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("")
+                .baseUrl(REQRES_BASE_URL)
                 .addConverterFactory(GsonConverterFactory.create())
                 .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
                 .build();
@@ -189,111 +294,6 @@ public class ActivityRxJava extends AppCompatActivity {
             subscriptionRx1.unsubscribe();
         super.onDestroy();
     }
-
-    void retrofit2RxJAva2() {
-
-        RxJava2CallAdapterFactory rxAdapter = RxJava2CallAdapterFactory.createWithScheduler(Schedulers.io());
-        Retrofit retrofit = new Retrofit.Builder()
-                .baseUrl("https://api.github.com")
-                .addConverterFactory(GsonConverterFactory.create())
-                .addCallAdapterFactory(rxAdapter)
-                .build();
-
-        ReqResApi service = retrofit.create(ReqResApi.class);
-        Observable<List<UserReqResResponse>> observable = service.getUsersInPageRx_2(String.valueOf(2));
-
-        observable.observeOn(AndroidSchedulers.mainThread()).subscribeOn(Schedulers.io())
-                .subscribe(new DefaultObserver<List<UserReqResResponse>>() {
-                    @Override
-                    public void onNext(List<UserReqResResponse> userReqRes) {
-
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onComplete() {
-
-                    }
-                });
-    }
-
-
-    public void simpleAsyncTaskToRxJava(String url) {
-        Observable.generate(new Callable<Bitmap>() {
-            @Override
-            public Bitmap call() throws Exception {
-                return null;
-            }
-        }, new BiConsumer<Bitmap, Emitter<Bitmap>>() {
-            @Override
-            public void accept(Bitmap bitmap, Emitter<Bitmap> emitter) throws Exception {
-                emitter.onNext(bitmap);
-            }
-        });
-
-
-        Observable.fromCallable(new Callable<Bitmap>() {
-            @Override
-            public Bitmap call() throws Exception {
-
-                Bitmap mIcon11 = null;
-                try {
-                    InputStream in = new URL(url).openStream();
-                    mIcon11 = BitmapFactory.decodeStream(in);
-                } catch (Exception e) {
-                    Log.e("Error", e.getMessage());
-                    e.printStackTrace();
-                }
-                return mIcon11;
-            }
-        }).subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread())
-                .subscribe(bitmap -> {
-                            showImage(bitmap);
-                        },
-                        throwable -> Toast.makeText(this, "Error retrieving the image", Toast.LENGTH_SHORT).show());
-
-        rx.Observable<Bitmap> observableBmp = rx.Observable.create(new rx.Observable.OnSubscribe<Bitmap>() {
-            @Override
-            public void call(Subscriber<? super Bitmap> subscriber) {
-                Bitmap mIcon11 = null;
-                try {
-                    InputStream in = new URL(url).openStream();
-                    mIcon11 = BitmapFactory.decodeStream(in);
-                } catch (Exception e) {
-                    Log.e("Error", e.getMessage());
-                    e.printStackTrace();
-                }
-                subscriber.onNext(mIcon11);
-                subscriber.onCompleted();
-            }
-        });
-
-        Subscription mySubscription = observableBmp
-                .subscribeOn(rx.schedulers.Schedulers.io()) //perform the work in the bacgrkound
-                .observeOn(rx.android.schedulers.AndroidSchedulers.mainThread()) //wait for results in main thread(onNext, onCompleted onError
-                .subscribe(new Subscriber<Bitmap>() {
-                    @Override
-                    public void onCompleted() {
-                        Log.d("", "onCompleted");
-                    }
-
-                    @Override
-                    public void onError(Throwable e) {
-
-                    }
-
-                    @Override
-                    public void onNext(Bitmap bitmap) {
-                        showImage(bitmap);
-                    }
-                });
-    }
-
 
     public void showImage(Bitmap bmp) {
         ImageView imgView = new ImageView(this);

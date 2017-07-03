@@ -2,20 +2,16 @@ package com.melardev.tutsnetlibrary;
 
 import android.content.Intent;
 import android.net.Uri;
-import android.support.v7.app.AppCompatActivity;
 import android.os.Bundle;
+import android.support.v7.app.AppCompatActivity;
 import android.util.Log;
 import android.view.View;
 import android.widget.Button;
-import android.widget.EditText;
 import android.widget.ImageView;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import com.melardev.tutsnetlibrary.apis.GithubApi;
-import com.melardev.tutsnetlibrary.model.GitTokenResponse;
-import com.melardev.tutsnetlibrary.model.TokenOAuthGoogle;
-import com.melardev.tutsnetlibrary.model.UserDetails;
 import com.melardev.tutsnetlibrary.model.pojo.GitAuthenticatedUser;
 import com.squareup.picasso.Picasso;
 
@@ -25,21 +21,13 @@ import java.security.SecureRandom;
 import java.util.HashMap;
 import java.util.Map;
 
-import javax.annotation.Nullable;
-
-import okhttp3.Authenticator;
-import okhttp3.Credentials;
 import okhttp3.HttpUrl;
 import okhttp3.Interceptor;
-import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
-import okhttp3.Route;
 import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Converter;
-import retrofit2.Retrofit;
-import retrofit2.converter.gson.GsonConverterFactory;
 import retrofit2.converter.scalars.ScalarsConverterFactory;
 
 public class ActivityRetroFitOAuth extends AppCompatActivity {

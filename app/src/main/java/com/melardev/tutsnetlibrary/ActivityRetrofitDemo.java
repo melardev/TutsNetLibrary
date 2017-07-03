@@ -3,11 +3,11 @@ package com.melardev.tutsnetlibrary;
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
 import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
@@ -15,10 +15,9 @@ import android.widget.Toast;
 
 import com.melardev.tutsnetlibrary.apis.HttpBinApi;
 import com.melardev.tutsnetlibrary.apis.ReqResApi;
-import com.melardev.tutsnetlibrary.model.ReqResUnknown;
-import com.melardev.tutsnetlibrary.model.ReqResUserCreation;
 import com.melardev.tutsnetlibrary.model.UserReqResRequest;
-import com.melardev.tutsnetlibrary.model.UserReqResResponse;
+import com.melardev.tutsnetlibrary.model.pojo.ReqResUnknown;
+import com.melardev.tutsnetlibrary.model.pojo.UserReqResResponse;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
@@ -33,7 +32,6 @@ import java.util.Locale;
 import java.util.Map;
 
 import okhttp3.Credentials;
-import okhttp3.Interceptor;
 import okhttp3.MediaType;
 import okhttp3.MultipartBody;
 import okhttp3.OkHttpClient;

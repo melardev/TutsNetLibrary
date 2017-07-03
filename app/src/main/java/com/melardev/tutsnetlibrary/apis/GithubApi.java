@@ -1,9 +1,7 @@
 package com.melardev.tutsnetlibrary.apis;
 
-import com.melardev.tutsnetlibrary.model.GitTokenResponse;
 import com.melardev.tutsnetlibrary.model.pojo.GitAuthenticatedUser;
 
-import java.util.HashMap;
 import java.util.Map;
 
 import retrofit2.Call;

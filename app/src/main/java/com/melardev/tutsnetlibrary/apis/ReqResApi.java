@@ -2,13 +2,11 @@ package com.melardev.tutsnetlibrary.apis;
 
 import android.support.annotation.NonNull;
 
-import com.melardev.tutsnetlibrary.model.ReqResUnknown;
 import com.melardev.tutsnetlibrary.model.ReqResUserCreation;
 import com.melardev.tutsnetlibrary.model.UserReqResRequest;
-import com.melardev.tutsnetlibrary.model.UserReqResResponse;
+import com.melardev.tutsnetlibrary.model.pojo.ReqResUnknown;
 import com.melardev.tutsnetlibrary.model.pojo.ReqResUsers;
-
-import java.util.List;
+import com.melardev.tutsnetlibrary.model.pojo.UserReqResResponse;
 
 import io.reactivex.Observable;
 import okhttp3.RequestBody;
@@ -33,7 +31,7 @@ public interface ReqResApi {
     @GET("https://reqres.in//api/users?page=2")
     Call<ResponseBody> simpleGet(@Body RequestBody body);
 
-    //TODO:Work?
+    //TODO: work?
     @GET("/api/users")
     Call<ReqResUsers> getUsers(@Query("page") String page);
 
@@ -67,7 +65,7 @@ public interface ReqResApi {
 
     @FormUrlEncoded
     @POST("/api/users")
-    Call<ReqResUserCreation> createUser(@Field(value = "userName", encoded = false) String userName);
+    Call<ReqResUserCreation> createUser(@Field(value = "name", encoded = false) String userName);
     //You can use @FieldMap for multiple fields or multiple @Field parameter
     //FieldMap is for POST requests whereas @QueryMap is for GET requests
 
@@ -76,10 +74,10 @@ public interface ReqResApi {
 
 
     @GET("/api/users")
-    rx.Observable<List<UserReqResResponse>> getUsersInPageRx_1(@Query("page") String page);
+    rx.Observable<ReqResUsers> getUsersInPageRx_1(@Query("page") String page);
 
     @GET("/api/users")
-    Observable<List<UserReqResResponse>> getUsersInPageRx_2(@Query("page") String page);
+    Observable<ReqResUsers> getUsersInPageRx_2(@Query("page") String page);
 
     @GET("/api/users/{userId}")
     Observable<ReqResUsers.User> getUserByIdRx(@NonNull @Path("userId") long userId);

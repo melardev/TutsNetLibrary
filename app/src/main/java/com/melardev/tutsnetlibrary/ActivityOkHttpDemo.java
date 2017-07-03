@@ -2,20 +2,17 @@ package com.melardev.tutsnetlibrary;
 
 import android.graphics.Bitmap;
 import android.graphics.BitmapFactory;
-import android.net.Uri;
+import android.os.Bundle;
 import android.os.Handler;
-
 import android.os.Message;
 import android.support.v7.app.AlertDialog;
 import android.support.v7.app.AppCompatActivity;
-import android.os.Bundle;
 import android.view.View;
 import android.widget.ImageView;
 import android.widget.TextView;
 
 import com.facebook.stetho.okhttp3.StethoInterceptor;
 import com.google.gson.Gson;
-import com.melardev.tutsnetlibrary.model.pojo.ReqResUsers;
 
 import org.androidannotations.annotations.Background;
 import org.androidannotations.annotations.EActivity;
@@ -29,8 +26,6 @@ import java.io.FileOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.concurrent.TimeUnit;
-
-import javax.annotation.Nullable;
 
 import okhttp3.Authenticator;
 import okhttp3.Cache;
@@ -48,11 +43,6 @@ import okhttp3.RequestBody;
 import okhttp3.Response;
 import okhttp3.Route;
 import okhttp3.logging.HttpLoggingInterceptor;
-import okio.Buffer;
-import okio.BufferedSink;
-import okio.ForwardingSink;
-import okio.Okio;
-import okio.Sink;
 
 import static com.melardev.tutsnetlibrary.ServiceGenerator.logThreadInfo;
 
@@ -60,6 +50,7 @@ import static com.melardev.tutsnetlibrary.ServiceGenerator.logThreadInfo;
 public class ActivityOkHttpDemo extends AppCompatActivity {
 
     private TextView txtResult;
+
     OkHttpClient okHttpClient = new OkHttpClient.Builder()
             .addNetworkInterceptor(new StethoInterceptor())
             .build();
@@ -101,14 +92,14 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
     public void doSimpleGet(boolean asynchronous) {
         updateResult("");
         logThreadInfo("doSimpleGet(" + asynchronous + ")");
-        OkHttpClient client = new OkHttpClient();
+
         Request request = new Request.Builder()
                 .url("https://reqres.in/api/users?page=2")
                 .build();
 
         if (asynchronous) {
             //Asynchronous
-            Call myCall = client.newCall(request);
+            Call myCall = okHttpClient.newCall(request);
             myCall.enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
@@ -141,7 +132,7 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
         } else {
             //Synchronous
             try {
-                Response response = client.newCall(request).execute();
+                Response response = okHttpClient.newCall(request).execute();
                 updateResult(response.body().string());
             } catch (IOException e) {
                 e.printStackTrace();
@@ -151,8 +142,6 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
 
     @Background
     public void doPostText(View view) {
-        OkHttpClient client = new OkHttpClient();
-
         String postBody = "{\n" +
                 "    \"email\": \"melar@dev.com\",\n" +
                 "    \"password\": \"melardev\"\n" +
@@ -163,11 +152,11 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
                 .post(RequestBody.create(MediaType.parse("application/json; charset=utf-8")/*MediaType.parse("text/x-markdown; charset=utf-8")*/, postBody))
                 .build();
 
-        Call call = client.newCall(request);
+        Call call = okHttpClient.newCall(request);
         Response response = null;
         try {
             response = call.execute();
-            String responseStr = response.body().string();  //json2pojo already explained
+            String responseStr = response.body().string();
             updateResult(responseStr);
             //For authentication tutorial
             String token = null;
@@ -216,6 +205,10 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
 
     @Background
     public void doGetWithParams(View view) {
+        /*new HttpUrl.Builder()
+                .scheme("https")
+                .host("httpbin.org")
+                .addPathSegment("get")*/
         String url = HttpUrl.parse("https://httpbin.org/get").newBuilder()
                 .addEncodedQueryParameter("author", "Melar Dev") //for GET requests
                 .addQueryParameter("category", "android") //for GET requests
@@ -316,7 +309,8 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
     public void doBasicAuth(View view) {
         //https://github.com/square/okhttp/wiki/Recipes#handling-authentication
         logThreadInfo("doBasicAuth");
-        OkHttpClient client = new OkHttpClient.Builder()
+
+        OkHttpClient client = okHttpClient.newBuilder()
                 .authenticator(new Authenticator() {
                     @Override
                     public Request authenticate(Route route, Response response) throws IOException {
@@ -350,11 +344,11 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
     @Background
     public void doGetImage(View view) {
         try {
-            OkHttpClient okhttp = new OkHttpClient();
+
             Request request = new Request.Builder()
                     .url("https://httpbin.org/image/png")
                     .build();
-            Response response = okhttp.newCall(request).execute();
+            Response response = okHttpClient.newCall(request).execute();
             InputStream is = response.body().byteStream();
 
             Bitmap bmp = BitmapFactory.decodeStream(is);
@@ -386,26 +380,26 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
     }
 
     public void caching() {
-        OkHttpClient client = new OkHttpClient();
+
         Cache cache = new Cache(new File(getCacheDir(), "okHttpCache"), 10 * 1024 * 1024);
-        OkHttpClient okHttpClient = new OkHttpClient.Builder()
+        OkHttpClient client = okHttpClient.newBuilder()
                 .cache(cache)
-                .addNetworkInterceptor(new StethoInterceptor())
                 .build();
 
         Request request = new Request.Builder()
                 .url("https://reqres.in/api/users")
                 .cacheControl(new CacheControl.Builder().maxStale(365, TimeUnit.DAYS).noCache().build())
+                //.cacheControl(CacheControl.FORCE_CACHE)
                 .build();
     }
 
-    public void settings() {
+    public void settings() throws IOException {
         OkHttpClient okHttpClient = new OkHttpClient.Builder()
                 .connectTimeout(10, TimeUnit.SECONDS)
                 .writeTimeout(10, TimeUnit.SECONDS)
                 .build();
 
-        OkHttpClient.Builder copy = okHttpClient.newBuilder().writeTimeout(2, TimeUnit.SECONDS); //change configuration for one call
+        OkHttpClient copy = okHttpClient.newBuilder().writeTimeout(2, TimeUnit.SECONDS).build(); //change configuration for one call
     }
 
 
@@ -445,7 +439,7 @@ public class ActivityOkHttpDemo extends AppCompatActivity {
     public static void writeToFile(File file) {
         try {
             FileOutputStream fos = new FileOutputStream(file);
-            fos.write("This is the string contained in the fiel to be uploaded, Yiiiiiihaaaaaa!!!".getBytes());
+            fos.write("This is the string contained in the file to be uploaded, Yiiiiiihaaaaaa!!!".getBytes());
             fos.close();
         } catch (FileNotFoundException e) {
             e.printStackTrace();
